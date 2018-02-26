@@ -3,28 +3,35 @@ from __future__ import absolute_import, division, print_function
 from setuptools import setup
 
 
-dependencies = dict(
-    construct='0.0.4',
-    construct_cli='0.0.2',
-    construct_launcher='0.0.1',
-    construct_maya='0.0.1',
-    construct_templates='0.0.1'
-)
+install_requires = [
+    'construct==0.0.4',
+    'construct_cli==0.0.2',
+    'construct_launcher==0.0.1',
+    'construct_maya==0.0.1',
+    'construct_templates==0.0.1',
+    'fsfs==0.1.4',
+]
 
-req = '{0}=={1}'
-lnk = 'git+ssh://git@github.com/construct-org/{0}.git@master#egg={0}-{1}'
-install_requires = [req.format(*dep) for dep in dependencies.items()]
-dependency_links = [lnk.format(*dep) for dep in dependencies.items()]
+dependency_links = [
+    'git+ssh://git@github.com/construct-org/construct.git@master#egg=construct-0.0.4',
+    'git+ssh://git@github.com/construct-org/construct_cli.git@master#egg=construct_cli-0.0.2',
+    'git+ssh://git@github.com/construct-org/construct_launcher.git@master#egg=construct_launcher-0.0.1',
+    'git+ssh://git@github.com/construct-org/construct_maya.git@master#egg=construct_maya-0.0.1',
+    'git+ssh://git@github.com/construct-org/construct_templates.git@master#egg=construct_templates-0.0.1',
+    'git+ssh://git@github.com/danbradham/fsfs.git@master#egg=fsfs-0.1.4'
+]
 
+with open('README.rst', 'r') as f:
+    readme = f.read()
 
 setup(
-    name='construct',
+    name='construct_setup',
     version='0.0.1',
     author='Dan Bradham',
     author_email='danielbradham@gmail.com',
-    description='Install Construct',
+    description='Install construct core packages',
     url='https://github.com/construct-org/construct_setup',
-    long_description='Install construct core packages',
+    long_description=readme,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',

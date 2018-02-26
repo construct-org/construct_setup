@@ -5,11 +5,11 @@ Setup construct core packages.
 +----------------------+------------------------------+---------+
 | package              | description                  | version |
 +======================+==============================+=========+
-| construct_           | core api                     | 0.0.4   |
+| construct_           | Core api                     | 0.0.4   |
 +----------------------+------------------------------+---------+
-| construct_cli_       | command line interface       | 0.0.2   |
+| construct_cli_       | Command line interface       | 0.0.2   |
 +----------------------+------------------------------+---------+
-| construct_launcher_  | application launcher         | 0.0.1   |
+| construct_launcher_  | Application launcher         | 0.0.1   |
 +----------------------+------------------------------+---------+
 | construct_maya_      | Autodesk Maya integration    | 0.0.1   |
 +----------------------+------------------------------+---------+
@@ -17,7 +17,7 @@ Setup construct core packages.
 +----------------------+------------------------------+---------+
 | construct_templates_ | Basic templates              | 0.0.1   |
 +----------------------+------------------------------+---------+
-| construct_ui_        | graphical user interface     | N/A     |
+| construct_ui_        | Graphical user interface     | N/A     |
 +----------------------+------------------------------+---------+
 
 
@@ -26,7 +26,7 @@ Installation
 
 .. code-block:: console
 
-    pip install git+ssh://git@github.com/construct/construct_setup.git -I --process-dependency-links
+    pip install git+ssh://git@github.com/construct-org/construct_setup.git -I --process-dependency-links
 
 
 .. _construct: https://github.com/construct-org/construct
