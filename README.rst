@@ -13,7 +13,7 @@ Setup construct core packages.
 +----------------------+------------------------------+---------+
 | construct_maya_      | Autodesk Maya integration    | 0.0.1   |
 +----------------------+------------------------------+---------+
-| construct_nuke_      | The Foundry Nuke integration | N/A     |
+| construct_nuke_      | The Foundry Nuke integration | 0.0.1   |
 +----------------------+------------------------------+---------+
 | construct_templates_ | Basic templates              | 0.0.1   |
 +----------------------+------------------------------+---------+
