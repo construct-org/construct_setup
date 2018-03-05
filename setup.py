@@ -16,6 +16,7 @@ install_requires = [
 dependency_links = [
     'git+ssh://git@github.com/construct-org/construct.git@master#egg=construct-0.0.4',
     'git+ssh://git@github.com/construct-org/construct_cli.git@master#egg=construct_cli-0.0.2',
+    'git+ssh://git@github.com/construct-org/construct_cpenv.git@master#egg=construct_cpenv-0.0.2',
     'git+ssh://git@github.com/construct-org/construct_launcher.git@master#egg=construct_launcher-0.0.1',
     'git+ssh://git@github.com/construct-org/construct_maya.git@master#egg=construct_maya-0.0.1',
     'git+ssh://git@github.com/construct-org/construct_nuke.git@master#egg=construct_nuke-0.0.1',

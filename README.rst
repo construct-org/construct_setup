@@ -9,6 +9,8 @@ Setup construct core packages.
 +----------------------+------------------------------+---------+
 | construct_cli_       | Command line interface       | 0.0.2   |
 +----------------------+------------------------------+---------+
+| construct_cpenv_     | Cpenv Integration            | 0.0.1   |
++----------------------+------------------------------+---------+
 | construct_launcher_  | Application launcher         | 0.0.1   |
 +----------------------+------------------------------+---------+
 | construct_maya_      | Autodesk Maya integration    | 0.0.1   |
@@ -31,6 +33,7 @@ Installation
 
 .. _construct: https://github.com/construct-org/construct
 .. _construct_cli: https://github.com/construct-org/construct_cli
+.. _construct_cpenv: https://github.com/construct-org/construct_cpenv
 .. _construct_templates: https://github.com/construct-org/construct_templates
 .. _construct_launcher: https://github.com/construct-org/construct_launcher
 .. _construct_maya: https://github.com/construct-org/construct_maya
