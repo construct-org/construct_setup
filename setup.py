@@ -6,6 +6,7 @@ from setuptools import setup
 install_requires = [
     'construct==0.0.4',
     'construct_cli==0.0.2',
+    'construct_cpenv==0.0.1',
     'construct_launcher==0.0.1',
     'construct_maya==0.0.1',
     'construct_nuke==0.0.1',
