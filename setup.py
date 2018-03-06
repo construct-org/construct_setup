@@ -3,30 +3,35 @@ from __future__ import absolute_import, division, print_function
 from setuptools import setup
 
 
-install_requires = [
-    'construct==0.0.4',
-    'construct_cli==0.0.2',
-    'construct_cpenv==0.0.1',
-    'construct_launcher==0.0.1',
-    'construct_maya==0.0.1',
-    'construct_nuke==0.0.1',
-    'construct_templates==0.0.1',
-    'fsfs==0.1.4',
-]
+class Dependencies(object):
 
-dependency_links = [
-    'git+ssh://git@github.com/construct-org/construct.git@master#egg=construct-0.0.4',
-    'git+ssh://git@github.com/construct-org/construct_cli.git@master#egg=construct_cli-0.0.2',
-    'git+ssh://git@github.com/construct-org/construct_cpenv.git@master#egg=construct_cpenv-0.0.1',
-    'git+ssh://git@github.com/construct-org/construct_launcher.git@master#egg=construct_launcher-0.0.1',
-    'git+ssh://git@github.com/construct-org/construct_maya.git@master#egg=construct_maya-0.0.1',
-    'git+ssh://git@github.com/construct-org/construct_nuke.git@master#egg=construct_nuke-0.0.1',
-    'git+ssh://git@github.com/construct-org/construct_templates.git@master#egg=construct_templates-0.0.1',
-    'git+ssh://git@github.com/danbradham/fsfs.git@master#egg=fsfs-0.1.4'
-]
+    def __init__(self):
+        self.install_requires = []
+        self.dependency_links = []
 
-with open('README.rst', 'r') as f:
-    readme = f.read()
+    def __call__(self, requirement):
+        self.install_requires.append(requirement)
+
+    def git(self, org, package, version, branch='master'):
+        link = (
+            'git+ssh://git@github.com/'
+            '{org}/{package}.git@{branch}#egg={package}-{version}'
+        ).format(**locals())
+        require = '{package}=={version}'.format(**locals())
+        self.dependency_links.append(link)
+        self.install_requires.append(require)
+
+
+requires = Dependencies()
+requires.git('construct-org', 'construct', '0.0.4')
+requires.git('construct-org', 'construct_cli', '0.0.2')
+requires.git('construct-org', 'construct_cpenv', '0.0.1')
+requires.git('construct-org', 'construct_launcher', '0.0.1')
+requires.git('construct-org', 'construct_maya', '0.0.1')
+requires.git('construct-org', 'construct_nuke', '0.0.1')
+requires.git('construct-org', 'construct_templates', '0.0.1')
+requires.git('danbradham', 'fsfs', '0.1.4')
+
 
 setup(
     name='construct_setup',
@@ -35,7 +40,7 @@ setup(
     author_email='danielbradham@gmail.com',
     description='Install construct core packages',
     url='https://github.com/construct-org/construct_setup',
-    long_description=readme,
+    long_description=open('README.rst', 'r').read(),
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
@@ -48,6 +53,6 @@ setup(
         'Programming Language :: Python',
         'License :: OSI Approved :: MIT License',
     ],
-    install_requires=install_requires,
-    dependency_links=dependency_links
+    install_requires=requires.install_requires,
+    dependency_links=requires.dependency_links
 )
