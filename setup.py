@@ -23,14 +23,12 @@ class Dependencies(object):
 
 
 requires = Dependencies()
-requires.git('construct-org', 'construct', '0.0.4')
-requires.git('construct-org', 'construct_cli', '0.0.2')
-requires.git('construct-org', 'construct_cpenv', '0.0.1')
-requires.git('construct-org', 'construct_launcher', '0.0.1')
-requires.git('construct-org', 'construct_maya', '0.0.1')
-requires.git('construct-org', 'construct_nuke', '0.0.1')
-requires.git('construct-org', 'construct_templates', '0.0.1')
-requires.git('danbradham', 'fsfs', '0.1.4')
+requires.git('construct-org', 'construct', '0.1.0')
+requires.git('construct-org', 'construct_cpenv', '0.1.0')
+requires.git('construct-org', 'construct_launcher', '0.1.0')
+requires.git('construct-org', 'construct_maya', '0.1.1')
+requires.git('construct-org', 'construct_nuke', '0.1.1')
+requires.git('danbradham', 'fsfs', '0.1.9')
 
 
 setup(

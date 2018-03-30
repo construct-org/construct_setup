@@ -2,26 +2,23 @@ construct_setup
 ===============
 Setup construct core packages.
 
-+----------------------+------------------------------+---------+
-| package              | description                  | version |
-+======================+==============================+=========+
-| construct_           | Core api                     | 0.0.4   |
-+----------------------+------------------------------+---------+
-| construct_cli_       | Command line interface       | 0.0.2   |
-+----------------------+------------------------------+---------+
-| construct_cpenv_     | Cpenv Integration            | 0.0.1   |
-+----------------------+------------------------------+---------+
-| construct_launcher_  | Application launcher         | 0.0.1   |
-+----------------------+------------------------------+---------+
-| construct_maya_      | Autodesk Maya integration    | 0.0.1   |
-+----------------------+------------------------------+---------+
-| construct_nuke_      | The Foundry Nuke integration | 0.0.1   |
-+----------------------+------------------------------+---------+
-| construct_templates_ | Basic templates              | 0.0.1   |
-+----------------------+------------------------------+---------+
-| construct_ui_        | Graphical user interface     | N/A     |
-+----------------------+------------------------------+---------+
-
++---------------------+------------------------------+---------+
+| package             | description                  | version |
++=====================+==============================+=========+
+| construct_          | Core api                     | 0.1.0   |
++---------------------+------------------------------+---------+
+| construct_cpenv_    | Cpenv Integration            | 0.1.0   |
++---------------------+------------------------------+---------+
+| construct_launcher_ | Application launcher         | 0.1.0   |
++---------------------+------------------------------+---------+
+| construct_maya_     | Autodesk Maya integration    | 0.1.0   |
++---------------------+------------------------------+---------+
+| construct_nuke_     | The Foundry Nuke integration | 0.1.0   |
++---------------------+------------------------------+---------+
+| construct_ui_       | Graphical user interface     | N/A     |
++---------------------+------------------------------+---------+
+| construct_ftrack_   | Ftrack integration           | N/A     |
++---------------------+------------------------------+---------+
 
 Installation
 ============
@@ -32,9 +29,7 @@ Installation
 
 
 .. _construct: https://github.com/construct-org/construct
-.. _construct_cli: https://github.com/construct-org/construct_cli
 .. _construct_cpenv: https://github.com/construct-org/construct_cpenv
-.. _construct_templates: https://github.com/construct-org/construct_templates
 .. _construct_launcher: https://github.com/construct-org/construct_launcher
 .. _construct_maya: https://github.com/construct-org/construct_maya
 .. _construct_nuke: https://github.com/construct-org/construct_nuke
