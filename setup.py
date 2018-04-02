@@ -33,7 +33,7 @@ requires.git('danbradham', 'fsfs', '0.1.9')
 
 setup(
     name='construct_setup',
-    version='0.1.2',
+    version='0.1.3',
     author='Dan Bradham',
     author_email='danielbradham@gmail.com',
     description='Install construct core packages',
