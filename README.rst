@@ -31,7 +31,7 @@ from a terminal run:
 
 .. code-block:: console
 
-    pip install git+ssh://git@github.com/construct-org/construct_setup.git -I --process-dependency-links
+    pip install git+git://github.com/construct-org/construct_setup.git -I --process-dependency-links --trusted-host github.com
 
 .. _construct: https://github.com/construct-org/construct
 .. _construct_cpenv: https://github.com/construct-org/construct_cpenv
