@@ -22,13 +22,16 @@ Setup construct core packages.
 | fsfs_               | File system metadata         | 0.1.9   |
 +---------------------+------------------------------+---------+
 
+
 Installation
 ============
+
+Make sure git_ is installed and available from your command prompt. Then
+from a terminal run:
 
 .. code-block:: console
 
     pip install git+ssh://git@github.com/construct-org/construct_setup.git -I --process-dependency-links
-
 
 .. _construct: https://github.com/construct-org/construct
 .. _construct_cpenv: https://github.com/construct-org/construct_cpenv
@@ -37,3 +40,4 @@ Installation
 .. _construct_nuke: https://github.com/construct-org/construct_nuke
 .. _construct_ui: https://github.com/construct-org/construct_ui
 .. _fsfs: https://github.com/danbradham/fsfs
+.. _git: https://git-scm.com
