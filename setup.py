@@ -23,7 +23,7 @@ class Dependencies(object):
 
 
 requires = Dependencies()
-requires.git('construct-org', 'construct', '0.1.5')
+requires.git('construct-org', 'construct', '0.1.6')
 requires.git('construct-org', 'construct_cpenv', '0.1.1')
 requires.git('construct-org', 'construct_launcher', '0.1.1')
 requires.git('construct-org', 'construct_maya', '0.1.1')
@@ -33,7 +33,7 @@ requires.git('danbradham', 'fsfs', '0.1.9')
 
 setup(
     name='construct_setup',
-    version='0.1.5',
+    version='0.1.6',
     author='Dan Bradham',
     author_email='danielbradham@gmail.com',
     description='Install construct core packages',
