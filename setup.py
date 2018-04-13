@@ -15,7 +15,7 @@ class Dependencies(object):
     def git(self, org, package, version, branch='master'):
         link = (
             'git+git://github.com/'
-            '{org}/{package}.git@{branch}#egg={package}-{version}'
+            '{org}/{package}.git@{version}#egg={package}-{version}'
         ).format(**locals())
         require = '{package}=={version}'.format(**locals())
         self.dependency_links.append(link)
