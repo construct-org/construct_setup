@@ -13,13 +13,13 @@ Setup construct core packages.
 +---------------------+------------------------------+---------+
 | construct_maya_     | Autodesk Maya integration    | 0.1.1   |
 +---------------------+------------------------------+---------+
-| construct_nuke_     | The Foundry Nuke integration | 0.1.1   |
+| construct_nuke_     | The Foundry Nuke integration | 0.1.2   |
 +---------------------+------------------------------+---------+
 | construct_ui_       | Graphical user interface     | N/A     |
 +---------------------+------------------------------+---------+
 | construct_ftrack_   | Ftrack integration           | N/A     |
 +---------------------+------------------------------+---------+
-| fsfs_               | File system metadata         | 0.1.13  |
+| fsfs_               | File system metadata         | 0.1.14  |
 +---------------------+------------------------------+---------+
 
 
