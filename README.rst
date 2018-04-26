@@ -9,7 +9,7 @@ Setup construct core packages.
 +---------------------+------------------------------+---------+
 | construct_cpenv_    | Cpenv Integration            | 0.1.1   |
 +---------------------+------------------------------+---------+
-| construct_launcher_ | Application launcher         | 0.1.4   |
+| construct_launcher_ | Application launcher         | 0.1.5   |
 +---------------------+------------------------------+---------+
 | construct_maya_     | Autodesk Maya integration    | 0.1.4   |
 +---------------------+------------------------------+---------+
