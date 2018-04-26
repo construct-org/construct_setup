@@ -5,11 +5,11 @@ Setup construct core packages.
 +---------------------+------------------------------+---------+
 | package             | description                  | version |
 +=====================+==============================+=========+
-| construct_          | Core api                     | 0.1.14  |
+| construct_          | Core api                     | 0.1.15  |
 +---------------------+------------------------------+---------+
 | construct_cpenv_    | Cpenv Integration            | 0.1.1   |
 +---------------------+------------------------------+---------+
-| construct_launcher_ | Application launcher         | 0.1.3   |
+| construct_launcher_ | Application launcher         | 0.1.4   |
 +---------------------+------------------------------+---------+
 | construct_maya_     | Autodesk Maya integration    | 0.1.4   |
 +---------------------+------------------------------+---------+
@@ -19,7 +19,7 @@ Setup construct core packages.
 +---------------------+------------------------------+---------+
 | construct_ftrack_   | Ftrack integration           | N/A     |
 +---------------------+------------------------------+---------+
-| fsfs_               | File system metadata         | 0.1.16  |
+| fsfs_               | File system metadata         | 0.2.0   |
 +---------------------+------------------------------+---------+
 
 
