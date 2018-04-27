@@ -19,7 +19,7 @@ Setup construct core packages.
 +---------------------+------------------------------+---------+
 | construct_ftrack_   | Ftrack integration           | N/A     |
 +---------------------+------------------------------+---------+
-| fsfs_               | File system metadata         | 0.2.0   |
+| fsfs_               | File system metadata         | 0.2.1   |
 +---------------------+------------------------------+---------+
 
 
