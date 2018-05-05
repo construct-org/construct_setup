@@ -15,7 +15,7 @@ Setup construct core packages.
 +---------------------+------------------------------+---------+
 | construct_nuke_     | The Foundry Nuke integration | 0.1.4   |
 +---------------------+------------------------------+---------+
-| construct_ui_       | Graphical user interface     | 0.1.3   |
+| construct_ui_       | Graphical user interface     | 0.1.5   |
 +---------------------+------------------------------+---------+
 | construct_ftrack_   | Ftrack integration           | N/A     |
 +---------------------+------------------------------+---------+
