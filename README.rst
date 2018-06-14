@@ -11,11 +11,11 @@ Setup construct core packages.
 +---------------------+------------------------------+---------+
 | construct_launcher_ | Application launcher         | 0.1.5   |
 +---------------------+------------------------------+---------+
-| construct_maya_     | Autodesk Maya integration    | 0.1.8   |
+| construct_maya_     | Autodesk Maya integration    | 0.1.9   |
 +---------------------+------------------------------+---------+
-| construct_nuke_     | The Foundry Nuke integration | 0.1.6   |
+| construct_nuke_     | The Foundry Nuke integration | 0.1.7   |
 +---------------------+------------------------------+---------+
-| construct_ui_       | Graphical user interface     | 0.1.5   |
+| construct_ui_       | Graphical user interface     | 0.1.6   |
 +---------------------+------------------------------+---------+
 | construct_ftrack_   | Ftrack integration           | N/A     |
 +---------------------+------------------------------+---------+
