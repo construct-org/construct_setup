@@ -13,12 +13,11 @@ class Dependencies(object):
         self.install_requires.append(requirement)
 
     def git(self, org, package, version, branch='master'):
-        link = (
+        repo = (
             'git+git://github.com/'
             '{org}/{package}.git@{version}#egg={package}-{version}'
         ).format(**locals())
-        require = '{package}=={version}'.format(**locals())
-        self.dependency_links.append(link)
+        require = '{package} @ {repo}'.format(**locals())
         self.install_requires.append(require)
 
 
@@ -54,5 +53,4 @@ setup(
         'License :: OSI Approved :: MIT License',
     ],
     install_requires=requires.install_requires,
-    dependency_links=requires.dependency_links
 )
