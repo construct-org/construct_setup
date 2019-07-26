@@ -5,19 +5,19 @@ Setup construct core packages.
 +---------------------+------------------------------+---------+
 | package             | description                  | version |
 +=====================+==============================+=========+
-| construct_          | Core api                     | 0.1.22  |
+| construct_          | Core api                     | 0.1.23  |
 +---------------------+------------------------------+---------+
 | construct_cpenv_    | Cpenv Integration            | 0.1.1   |
 +---------------------+------------------------------+---------+
 | construct_launcher_ | Application launcher         | 0.1.5   |
 +---------------------+------------------------------+---------+
-| construct_maya_     | Autodesk Maya integration    | 0.1.10  |
+| construct_maya_     | Autodesk Maya integration    | 0.1.11  |
 +---------------------+------------------------------+---------+
-| construct_nuke_     | The Foundry Nuke integration | 0.1.8   |
+| construct_nuke_     | The Foundry Nuke integration | 0.1.9   |
 +---------------------+------------------------------+---------+
-| construct_ui_       | Graphical user interface     | 0.1.7   |
+| construct_ui_       | Graphical user interface     | 0.1.8   |
 +---------------------+------------------------------+---------+
-| fsfs_               | File system metadata         | 0.2.5   |
+| fsfs_               | File system metadata         | 0.2.6   |
 +---------------------+------------------------------+---------+
 
 
@@ -29,7 +29,7 @@ from a terminal run:
 
 .. code-block:: console
 
-    pip install git+git://github.com/construct-org/construct_setup.git -I
+    pip install -I git+git://github.com/construct-org/construct_setup.git
 
 .. _construct: https://github.com/construct-org/construct
 .. _construct_cpenv: https://github.com/construct-org/construct_cpenv
