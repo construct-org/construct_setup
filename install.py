@@ -156,7 +156,6 @@ def _install_win(version, python, where):
     # move_dir(join_path(install_packages, 'bin'), install_bin)
 
 
-
 def _install_linux(version, python, where):
     pass
 
