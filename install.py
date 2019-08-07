@@ -3,12 +3,9 @@ import sys
 import platform
 import argparse
 from subprocess import check_call, check_output, PIPE
-import shlex
 import os
-try:
-    from urllib.request import Request, urlopen
-except ImportError:
-    from urllib2 import Request, urlopen
+import re
+import shutil
 import logging
 
 # Configure Logging
@@ -16,8 +13,8 @@ logging.basicConfig(format='%(levelname)-8s | %(message)s', level=logging.DEBUG)
 _log = logging.getLogger('construct_setup')
 
 
-def log(message):
-    print(message)
+def log(message, *args):
+    print(message % args)
 
 debug = _log.debug
 critical = _log.critical
@@ -26,9 +23,9 @@ info = _log.info
 warning = _log.warning
 
 
-def abort(message):
-    critical(message)
-    log('Aborting install.')
+def abort(message, *args):
+    critical(message, *args)
+    log('Install Aborted.')
     sys.exit()
 
 
@@ -53,17 +50,81 @@ def setup_log_colors():
 
 
 # Configure Globals
+THIS_DIR = os.path.abspath(os.path.dirname(__file__))
+THIS_BIN = os.path.join(THIS_DIR, 'bin')
 PLATFORM = platform.system()
 DEFAULT_INSTALL_DIR = {
     'Windows': 'C:/construct',
     'Linux': '/usr/local/construct',
     'Mac': '/opt/local/construct'
 }[PLATFORM]
+DEFAULT_VERSION = '0.1.23'
+DEFAULT_PYTHON = sys.executable
 VERBOSE = False
-PIP_PATH = (
+PIP_PACKAGE_PATH = (
     'git+git://github.com/construct-org/construct_setup.git'
     '@%s#egg=construct_setup'
 )
+
+
+# Windows Utilities
+def _get_winreg():
+    try:
+        import _winreg as winreg
+    except:
+        import winreg
+    return winreg
+
+
+def _get_env_lookup(user=False):
+    winreg = _get_winreg()
+    user_reg_path = 'Environment'
+    reg_path = 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
+    if user:
+        return winreg.HKEY_CURRENT_USER, user_reg_path
+    else:
+        return winreg.HKEY_LOCAL_MACHINE, reg_path
+
+
+def _win_get_env(name, user=False):
+    winreg = _get_winreg()
+    root, path = _get_env_lookup(user)
+
+    try:
+        with winreg.OpenKey(root, path) as key:
+            return winreg.QueryValueEx(key, name)[0]
+    except WindowsError:
+        return ''
+
+
+def _win_set_env(name, value, user=False):
+    winreg = _get_winreg()
+    root, path = _get_env_lookup(user)
+
+    try:
+        with winreg.OpenKey(root, path, 0, winreg.KEY_ALL_ACCESS) as key:
+            try:
+                reg_type = winreg.QueryValueEx(key, name)[1]
+            except:
+                if '%' in value:
+                    reg_type = winreg.REG_EXPAND_SZ
+                else:
+                    reg_type = winreg.REG_SZ
+            winreg.SetValueEx(key, name, 0, reg_type, value)
+            return True
+    except WindowsError:
+        return False
+
+
+def _send_wm_settingchange(path):
+    import ctypes
+    from ctypes.wintypes import HWND, UINT, WPARAM, LPARAM, LPVOID
+    send_message = ctypes.windll.user32.SendMessageW
+    send_message.argtypes = HWND, UINT, WPARAM, LPVOID
+    send_message.restype = LPARAM
+    HWND_BROADCAST = 0xFFFF
+    WM_SETTINGCHANGE = 0x1A
+    send_message(HWND_BROADCAST, WM_SETTINGCHANGE, 0, path)
 
 
 # Utilities
@@ -71,11 +132,23 @@ def join_path(*paths):
     return os.path.normpath(os.path.join(*paths)).replace('\\', '/')
 
 
+def execute_after(cmd):
+    script = os.environ.get('SCRIM_PATH')
+    if script:
+        with open(script, 'a') as f:
+            f.write(cmd + '\n')
+
+
 def ensure_exists(folder):
-    debug('Ensuring that "%s" exists.' % folder)
+    debug('Ensuring that "%s" exists.', folder)
     if not os.path.exists(folder):
-        debug('Creating "%s".' % folder)
+        debug('Creating "%s".', folder)
         os.makedirs(folder)
+
+
+def touch(fname, times=None):
+    with open(fname, 'a'):
+        os.utime(fname, times)
 
 
 def is_available(cmd):
@@ -86,18 +159,19 @@ def is_available(cmd):
         return False
 
 
-def get_latest_release():
-    return check_output('git describe --tags').strip()
-
-
 def run(cmd, abort_on_fail=True, **kwargs):
     try:
-        debug('Executing command: %s' % cmd)
+        debug('Executing command: %s', cmd)
         check_call(cmd)
+        return True
     except:
         if abort_on_fail:
-            abort('Failed to execute: %s' % cmd)
+            abort('Failed to execute: %s', cmd)
         return False
+
+
+def get_python_version(python):
+    return check_call('python -c "import sys; print(sys.version[:3])"')
 
 
 def create_venv(python, env_dir):
@@ -119,7 +193,8 @@ def create_venv(python, env_dir):
         else:
             abort(
                 'Failed to setup a virtualenv for construct.\n\n'
-                'Install virtualenv for "%s"' % python
+                'Install virtualenv for "%s"',
+                python
             )
 
 
@@ -129,55 +204,160 @@ def pip_install(python, *args):
 
 
 def move_dir(src, dest):
-    import shutil
+    if os.path.isdir(dest):
+        shutil.rmtree(dest)
     shutil.move(src, dest)
 
 
-def _install_win(version, python, where):
+def update_symlink(src, dest):
 
-    bin_path = join_path(where, 'bin')
-    latest_path = join_path(where, 'latest')
+    debug('Updating latest symlink %s > %s.', src, dest)
+
+    if PLATFORM == 'Windows':
+        src = os.path.normpath(src)
+        dest = os.path.normpath(dest)
+        if os.path.isdir(dest):
+            run('cmd.exe /C rmdir %s' % dest)
+        run('cmd.exe /C mklink /D %s %s' % (dest, src))
+    else:
+        if os.path.isdir(dest):
+            os.remove(dest)
+        os.symlink(src, dest)
+
+
+def copy_scripts(dest):
+    debug('Installing scripts to %s', dest)
+    construct_bat = join_path(THIS_BIN, 'construct.bat')
+    shutil.copy2(construct_bat, dest)
+    shutil.copy2(construct_bat, join_path(dest, 'cons.bat'))
+    shutil.copy2(join_path(THIS_BIN, 'construct.ps1'), dest)
+    shutil.copy2(join_path(THIS_BIN, 'construct.sh'), dest)
+
+
+def write_pth(site, lib, bin):
+    lib_path = os.path.relpath(lib, site).replace('\\', '/')
+    bin_path = os.path.relpath(bin, site).replace('\\', '/')
+    site_path = join_path(site, 'construct.pth')
+    with open(site_path, 'w') as f:
+        f.write(lib_path)
+        f.write(bin_path)
+
+
+def install(version, python, where, config):
+
+    log('Installing Construct-%s to "%s".', version, where)
+    debug('Using "%s".', python)
+
+    # Setup our paths
+    pip_package_path = PIP_PACKAGE_PATH % version
     install_path = join_path(where, version)
-    install_packages = join_path(install_path, 'packages')
+    install_lib = join_path(install_path, 'lib')
     install_bin = join_path(install_path, 'bin')
     install_env = join_path(install_path, 'python')
-    install_py = join_path(install_env, 'Scripts', 'python.exe')
-    pip_path = PIP_PATH % version
 
+    if PLATFORM == 'Windows':
+        install_py = join_path(install_env, 'Scripts', 'python.exe')
+        install_site = join_path(install_env, 'lib', 'site-packages')
+    else:
+        pyver = 'python' + get_python_version(python)
+        install_py = join_path(install_env, 'bin', 'python')
+        install_site = join_path(install_env, 'lib', pyver, 'site-packages')
+
+    # Make sure our install locations exist
     ensure_exists(where)
-    ensure_exists(bin_path)
     ensure_exists(install_path)
+
+    # Create a python virtualenv
     create_venv(python, install_env)
+
+    # Add a pth file extending the virtualenv to include lib and bin paths
+    write_pth(install_site, install_lib, install_bin)
+
+    # Install construct and all of it's dependencies
     pip_install(
         install_py,
-        "-I", PIP_PATH % version,
-        '--target=%s' % install_packages
+        "-I", pip_package_path,
+        '--target=%s' % install_lib
     )
-    # move_dir(join_path(install_packages, 'bin'), install_bin)
 
+    # Move the target bin to the root of the install directory
+    move_dir(join_path(install_lib, 'bin'), install_bin)
 
-def _install_linux(version, python, where):
-    pass
+    # Copy the construct shim files to the installs root directory
+    copy_scripts(where)
 
+    # Symlink to the version we just installed
+    update_symlink(install_path, join_path(where, 'latest'))
 
-def _install_mac(version, python, where):
-    pass
+    # This portion of the script will only be executed when
+    # install is run via install.bat or install.sh
+    if PLATFORM == 'Windows':
+        # Modify system PATH to include construct install directory
+        info('Adding %s to system PATH' % where)
+        system_path = _win_get_env('PATH')
+        print(system_path)
+        if where not in system_path.split(';'):
+            print(where, system_path)
+            execute_after('setx /M PATH "%s;%s"' % (where, system_path))
 
+        execute_after('set "PATH=%s;%%PATH%%"' % where)
+        if config:
+            info('Setting CONSTRUCT_CONFIG to %s' % config)
+            execute_after('setx /M CONSTRUCT_CONFIG "%s"' % config)
+            execute_after('set "CONSTRUCT_CONFIG=%s"' % config)
+    else:
 
-def install(version, python, where):
-    installer = {
-        'Windows': _install_win,
-        'Linux': _install_linux,
-        'Darwin': _install_mac
-    }[PLATFORM]
-    log('Installing Construct-%s to "%s".' % (version, where))
-    debug('Using "%s".' % python)
-    installer(version, python, where)
+        export_cmd = 'export PATH=%s:$PATH' % where
+        source_cmd = 'source %s/construct.sh' % where
+        config_cmd = 'export CONSTRUCT_CONFIG=%s' % config
+
+        # Update bash_profile
+        bash_profile_path = os.path.expanduser('~/.bash_profile')
+        touch(bash_profile_path)
+
+        with open(base_profile_path, 'r') as f:
+            bash_profile = f.read()
+
+        changed = False
+        if export_cmd not in bash_profile:
+            bash_profile += '\n' + export_cmd + '\n'
+            changed = True
+        if source_cmd not in bash_profile:
+            bash_profile += source_cmd + '\n'
+            changed = True
+        if config:
+            match = re.search(r'export CONSTRUCT_CONFIG.*', bash_profile, re.M)
+            if not match:
+                bash_profile += export_cmd + '\n'
+            else:
+                string = match.group(0)
+                bash_profile = bash_profile.replace(string, export_cmd)
+            changed = True
+        if changed:
+            info('Updating ~/.bash_profile')
+            # TODO: uncomment this bit once this is tested properly
+            # with open(bash_profile_file, 'w) as f:
+            #     f.write(baseh_profile)
+            pass
+
+        # Activate construct in parent shell
+        info('Adding %s to PATH' % where)
+        execute_after(export_cmd)
+        info('Sourcing construct.sh')
+        execute_after(source_cmd)
+        if config:
+            info('Setting CONSTRUCT_CONFIG to %s' % config)
+            execute_after(config_cmd)
+
+    info('Install complete!')
+    log('\nYou should now have access to the construct cli.\n')
+    log('    cons -h')
 
 
 def main():
 
     setup_log_colors()
+
     if not is_available('git --version'):
         abort(
             'Git is required to install construct.\n\n'
@@ -189,19 +369,25 @@ def main():
         '--version',
         required=False,
         action='store',
-        default=get_latest_release()
+        default=DEFAULT_VERSION
     )
     parser.add_argument(
         '--python',
         action='store',
         help='Python Executable',
-        default=sys.executable
+        default=DEFAULT_PYTHON
     )
     parser.add_argument(
         '--where',
         action='store',
         help='Where to install',
         default=DEFAULT_INSTALL_DIR
+    )
+    parser.add_argument(
+        '--config',
+        action='store',
+        help='Location of a construct configuration file.',
+        default=''
     )
 
     args = parser.parse_args()
