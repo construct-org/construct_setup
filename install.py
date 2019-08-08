@@ -180,10 +180,10 @@ def run(cmd, abort_on_fail=True, **kwargs):
 
 
 def get_python_version(python):
-    return check_call(
+    return check_output(
         'python -c "import sys; print(sys.version[:3])"',
         shell=True
-    )
+    ).strip()
 
 
 def create_venv(python, env_dir, env_py):
