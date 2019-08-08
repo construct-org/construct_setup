@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [ "$EUID" -ne 0 ]; then
+    export SCRIM_ADMIN=0
+else
+    export SCRIM_ADMIN=1
+fi
+
 _tmpdir=$(mktemp -d)
 export SCRIM_PATH="$_tmpdir/scrim_out.sh"
 
@@ -18,5 +24,6 @@ if [ -e "$SCRIM_PATH" ]; then
 
 fi
 
+unset SCRIM_ADMIN
 unset SCRIM_PATH
 rm -rf $_tmpdir

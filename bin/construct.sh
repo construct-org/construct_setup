@@ -1,23 +1,17 @@
 #!/bin/bash
 
-construct () {
-    # Shim around construct.sh installed in a virtualenv
+THIS="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+export PATH="$THIS/latest/bin:$THIS/latest/python/bin:$PATH"
+export PYTHONPATH="$THIS/latest/lib:$PYTHONPATH"
 
-    THIS="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-    OLD_PATH="$PATH"
-    OLD_PYTHONPATH="$PYTHONPATH"
-    export PATH="$THIS/latest/bin:$THIS/latest/python/bin:$PATH"
-    export PYTHONPATH="$THIS/latest/lib:$PYTHONPATH"
+py_entry_point="$THIS/latest/bin/construct"
+source $py_entry_point
 
-    py_entry_point="$THIS/latest/bin/pyconstruct"
-    $py_entry_point "$@"
-
-    export PATH=$OLD_PATH
-    export PYTHONPATH=$OLD_PYTHONPATH
-}
+alias cons=construct
 
 
-cons () {
-    # Alias for construct
-    construct
+cons_set_version () {
+    # Set active construct version
+    rm "$THIS/latest"
+    ln -s "$THIS/$1" "$THIS/latest"
 }

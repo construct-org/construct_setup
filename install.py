@@ -1,3 +1,4 @@
+
 from __future__ import print_function
 import sys
 import platform
@@ -60,8 +61,8 @@ THIS_BIN = os.path.join(THIS_DIR, 'bin')
 PLATFORM = platform.system()
 DEFAULT_INSTALL_DIR = {
     'Windows': 'C:/construct',
-    'Linux': '/usr/local/construct',
-    'Mac': '/opt/local/construct'
+    'Linux': '/opt/construct',
+    'Mac': '/opt/construct'
 }[PLATFORM]
 DEFAULT_VERSION = '0.1.23'
 DEFAULT_PYTHON = sys.executable
@@ -255,8 +256,7 @@ def write_pth(site, lib, bin):
     bin_path = os.path.relpath(bin, site).replace('\\', '/')
     site_path = join_path(site, 'construct.pth')
     with open(site_path, 'w') as f:
-        f.write(lib_path)
-        f.write(bin_path)
+        f.write('\n'.join([lib_path, bin_path]))
 
 
 def update_profile(bash_profile_path, export_cmd, source_cmd, config_cmd=None):
@@ -283,14 +283,14 @@ def update_profile(bash_profile_path, export_cmd, source_cmd, config_cmd=None):
             bash_profile = bash_profile.replace(string, export_cmd)
         changed = True
     if changed:
+        info('Backing up %s to %s.bak!!', bash_profile_path, bash_profile_path)
+        shutil.copy2(bash_profile_path, bash_profile_path + '.bak')
         info('Updating %s', bash_profile_path)
-        # TODO: uncomment this bit once this is tested properly
-        # with open(bash_profile_file, 'w) as f:
-        #     f.write(baseh_profile)
-        pass
+        with open(bash_profile_path, 'w') as f:
+             f.write(bash_profile)
 
 
-def install(version, python, where, config):
+def install(version, python, where, config, local):
 
     if not is_elevated() and PLATFORM == 'Windows':
         log(
@@ -311,7 +311,10 @@ def install(version, python, where, config):
     debug('Using "%s".', python)
 
     # Setup our paths
-    pip_package_path = PIP_PACKAGE_PATH % version
+    if local:
+        pip_package_path = '.'
+    else:
+        pip_package_path = PIP_PACKAGE_PATH % version
     install_path = join_path(where, version)
     install_lib = join_path(install_path, 'lib')
     install_bin = join_path(install_path, 'bin')
@@ -380,7 +383,7 @@ def install(version, python, where, config):
         if is_elevated():
             bash_profile_path = '/etc/profile'
         else:
-            bash_profile_path = os.path.expanduser('~/.bash_profile')
+            bash_profile_path = os.path.expanduser('~/.profile')
 
         # Update bash profile to make sure that each time a user logs in
         # they have access to construct.
@@ -433,6 +436,11 @@ def main():
         action='store',
         help='Location of a construct configuration file.',
         default=''
+    )
+    parser.add_argument(
+        '--local',
+         action='store_true',
+         help='Install from local directory.'
     )
 
     args = parser.parse_args()
