@@ -162,7 +162,7 @@ def touch(fname, times=None):
 
 def is_available(cmd):
     try:
-        check_call(cmd, stdout=PIPE, stderr=PIPE)
+        check_call(cmd, stdout=PIPE, stderr=PIPE, shell=True)
         return True
     except:
         return False
