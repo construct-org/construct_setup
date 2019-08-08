@@ -23,7 +23,7 @@ class Dependencies(object):
 
 
 requires = Dependencies()
-requires.git('construct-org', 'construct', '0.1.23dev')
+requires.git('construct-org', 'construct', '0.1.23')
 requires.git('construct-org', 'construct_cpenv', '0.1.1')
 requires.git('construct-org', 'construct_launcher', '0.1.5')
 requires.git('construct-org', 'construct_maya', '0.1.11')
