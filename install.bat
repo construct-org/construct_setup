@@ -3,6 +3,15 @@ set SCRIM_LOG=%temp%\cons_install_log.txt
 set SCRIM_PATH=%temp%\cons_post_install.bat
 set SCRIM_SCRIPT=%0
 
+
+REM Check for administrative rights
+net session >nul 2>&1 && (
+    set SCRIM_ADMIN=1
+) || (
+    set SCRIM_ADMIN=0
+)
+
+
 if exist %SCRIM_PATH% (
     del %SCRIM_PATH%
 )
@@ -48,3 +57,4 @@ if exist %SCRIM_PATH% (
 set SCRIM_LOG=
 set SCRIM_PATH=
 set SCRIM_SCRIPT=
+set SCRIM_ADMIN=

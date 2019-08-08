@@ -8,6 +8,11 @@ import re
 import shutil
 import logging
 
+PY2 = sys.version_info[0] == 2
+PY3 = sys.version_info[0] == 3
+if PY2:
+    input = raw_input
+
 # Configure Logging
 logging.basicConfig(format='%(levelname)-8s | %(message)s', level=logging.DEBUG)
 _log = logging.getLogger('construct_setup')
@@ -132,6 +137,10 @@ def join_path(*paths):
     return os.path.normpath(os.path.join(*paths)).replace('\\', '/')
 
 
+def is_elevated():
+    return bool(int(os.environ.get('SCRIM_ADMIN', 0)))
+
+
 def execute_after(cmd):
     script = os.environ.get('SCRIM_PATH')
     if script:
@@ -174,7 +183,7 @@ def get_python_version(python):
     return check_call('python -c "import sys; print(sys.version[:3])"')
 
 
-def create_venv(python, env_dir):
+def create_venv(python, env_dir, env_py):
     if os.path.exists(env_dir):
         warning('Virtual env already exists.')
         return
@@ -182,7 +191,7 @@ def create_venv(python, env_dir):
     if is_available(python + ' -c "import virtualenv"'):
         run(python + ' -m virtualenv --no-site-packages ' + env_dir)
     elif is_available(python + ' -c "import venv"'):
-        run(python + ' -m venv --no-site-packages ' + env_dir)
+        run(python + ' -m venv ' + env_dir)
     else:
         success = run(
             python + ' -m pip install virtualenv',
@@ -196,6 +205,10 @@ def create_venv(python, env_dir):
                 'Install virtualenv for "%s"',
                 python
             )
+
+    # Upgrade pip
+    debug('Upgrading pip...')
+    pip_install(env_py, '-U', 'pip')
 
 
 def pip_install(python, *args):
@@ -243,7 +256,53 @@ def write_pth(site, lib, bin):
         f.write(bin_path)
 
 
+def update_profile(bash_profile_path, export_cmd, source_cmd, config_cmd=None):
+    '''Update bash profile on Linux and MacOS'''
+
+    touch(bash_profile_path)
+
+    with open(bash_profile_path, 'r') as f:
+        bash_profile = f.read()
+
+    changed = False
+    if export_cmd not in bash_profile:
+        bash_profile += '\n' + export_cmd + '\n'
+        changed = True
+    if source_cmd not in bash_profile:
+        bash_profile += source_cmd + '\n'
+        changed = True
+    if config_cmd:
+        match = re.search(r'export CONSTRUCT_CONFIG.*', bash_profile, re.M)
+        if not match:
+            bash_profile += export_cmd + '\n'
+        else:
+            string = match.group(0)
+            bash_profile = bash_profile.replace(string, export_cmd)
+        changed = True
+    if changed:
+        info('Updating %s', bash_profile_path)
+        # TODO: uncomment this bit once this is tested properly
+        # with open(bash_profile_file, 'w) as f:
+        #     f.write(baseh_profile)
+        pass
+
+
 def install(version, python, where, config):
+
+    if not is_elevated() and PLATFORM == 'Windows':
+        log(
+            'To fully install Construct you need Admin priviledges. The '
+            'following features will be disabled.\n\n'
+            '    - Setting system environment variables\n'
+        )
+        answer = input('Would you like to install anyway? [y] or n\n')
+        if answer and answer.lower().startswith('n'):
+            log('Abort.')
+            sys.exit()
+
+    where = os.path.abspath(where)
+    if config:
+        config = os.path.abspath(config)
 
     log('Installing Construct-%s to "%s".', version, where)
     debug('Using "%s".', python)
@@ -268,7 +327,7 @@ def install(version, python, where, config):
     ensure_exists(install_path)
 
     # Create a python virtualenv
-    create_venv(python, install_env)
+    create_venv(python, install_env, install_py)
 
     # Add a pth file extending the virtualenv to include lib and bin paths
     write_pth(install_site, install_lib, install_bin)
@@ -289,58 +348,41 @@ def install(version, python, where, config):
     # Symlink to the version we just installed
     update_symlink(install_path, join_path(where, 'latest'))
 
-    # This portion of the script will only be executed when
-    # install is run via install.bat or install.sh
+    # Post install
+    # Setup system-wide access and activate construct in parent shells.
     if PLATFORM == 'Windows':
+
         # Modify system PATH to include construct install directory
         info('Adding %s to system PATH' % where)
         system_path = _win_get_env('PATH')
-        print(system_path)
         if where not in system_path.split(';'):
-            print(where, system_path)
-            execute_after('setx /M PATH "%s;%s"' % (where, system_path))
+            if is_elevated():
+                execute_after('setx /M PATH "%s;%s"' % (where, system_path))
 
         execute_after('set "PATH=%s;%%PATH%%"' % where)
         if config:
             info('Setting CONSTRUCT_CONFIG to %s' % config)
-            execute_after('setx /M CONSTRUCT_CONFIG "%s"' % config)
+            if is_elevated():
+                execute_after('setx /M CONSTRUCT_CONFIG "%s"' % config)
             execute_after('set "CONSTRUCT_CONFIG=%s"' % config)
+
     else:
 
         export_cmd = 'export PATH=%s:$PATH' % where
         source_cmd = 'source %s/construct.sh' % where
-        config_cmd = 'export CONSTRUCT_CONFIG=%s' % config
-
-        # Update bash_profile
-        bash_profile_path = os.path.expanduser('~/.bash_profile')
-        touch(bash_profile_path)
-
-        with open(base_profile_path, 'r') as f:
-            bash_profile = f.read()
-
-        changed = False
-        if export_cmd not in bash_profile:
-            bash_profile += '\n' + export_cmd + '\n'
-            changed = True
-        if source_cmd not in bash_profile:
-            bash_profile += source_cmd + '\n'
-            changed = True
+        config_cmd = None
         if config:
-            match = re.search(r'export CONSTRUCT_CONFIG.*', bash_profile, re.M)
-            if not match:
-                bash_profile += export_cmd + '\n'
-            else:
-                string = match.group(0)
-                bash_profile = bash_profile.replace(string, export_cmd)
-            changed = True
-        if changed:
-            info('Updating ~/.bash_profile')
-            # TODO: uncomment this bit once this is tested properly
-            # with open(bash_profile_file, 'w) as f:
-            #     f.write(baseh_profile)
-            pass
+            config_cmd = 'export CONSTRUCT_CONFIG=%s' % config
 
-        # Activate construct in parent shell
+        if is_elevated():
+            bash_profile_path = '/etc/profile'
+        else:
+            bash_profile_path = os.path.expanduser('~/.bash_profile')
+
+        # Update bash profile to make sure that each time a user logs in
+        # they have access to construct.
+        update_profile(bash_profile_path, export_cmd, source_cmd, config_cmd)
+
         info('Adding %s to PATH' % where)
         execute_after(export_cmd)
         info('Sourcing construct.sh')
