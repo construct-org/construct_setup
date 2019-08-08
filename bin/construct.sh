@@ -21,8 +21,3 @@ cons () {
     # Alias for construct
     construct
 }
-
-
-set_construct_version() {
-    # Replace symlink for latest
-}
