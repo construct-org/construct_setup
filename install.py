@@ -171,7 +171,7 @@ def is_available(cmd):
 def run(cmd, abort_on_fail=True, **kwargs):
     try:
         debug('Executing command: %s', cmd)
-        check_call(cmd)
+        check_call(cmd, shell=True)
         return True
     except:
         if abort_on_fail:
@@ -180,7 +180,10 @@ def run(cmd, abort_on_fail=True, **kwargs):
 
 
 def get_python_version(python):
-    return check_call('python -c "import sys; print(sys.version[:3])"')
+    return check_call(
+        'python -c "import sys; print(sys.version[:3])"',
+        shell=True
+    )
 
 
 def create_venv(python, env_dir, env_py):
