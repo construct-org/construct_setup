@@ -290,7 +290,7 @@ def update_profile(bash_profile_path, export_cmd, source_cmd, config_cmd=None):
              f.write(bash_profile)
 
 
-def install(version, python, where, config, local):
+def install(version, python, where, config, local, name):
 
     if not is_elevated() and PLATFORM == 'Windows':
         log(
@@ -307,18 +307,18 @@ def install(version, python, where, config, local):
     if config:
         config = os.path.abspath(config)
 
-    log('Installing Construct-%s to "%s".', version, where)
-    debug('Using "%s".', python)
-
     # Setup our paths
     if local:
         pip_package_path = '.'
     else:
         pip_package_path = PIP_PACKAGE_PATH % version
-    install_path = join_path(where, version)
+    install_path = join_path(where, name)
     install_lib = join_path(install_path, 'lib')
     install_bin = join_path(install_path, 'bin')
     install_env = join_path(install_path, 'python')
+
+    log('Installing Construct-%s to "%s".', version, install_path)
+    debug('Using "%s".', python)
 
     if PLATFORM == 'Windows':
         install_py = join_path(install_env, 'Scripts', 'python.exe')
@@ -441,6 +441,12 @@ def main():
         '--local',
          action='store_true',
          help='Install from local directory.'
+    )
+    parser.add_argument(
+        '--name',
+         action='store',
+         help='Install from local directory.',
+         default=DEFAULT_VERSION,
     )
 
     args = parser.parse_args()
