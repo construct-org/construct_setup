@@ -139,7 +139,7 @@ def join_path(*paths):
 
 
 def is_elevated():
-    return bool(int(os.environ.get('SCRIM_ADMIN', 0)))
+    return bool(int(os.environ.get('SCRIM_ADMIN', 1)))
 
 
 def execute_after(cmd):
