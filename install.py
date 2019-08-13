@@ -287,10 +287,13 @@ def update_profile(bash_profile_path, export_cmd, source_cmd, config_cmd=None):
         shutil.copy2(bash_profile_path, bash_profile_path + '.bak')
         info('Updating %s', bash_profile_path)
         with open(bash_profile_path, 'w') as f:
-             f.write(bash_profile)
+            f.write(bash_profile)
 
 
-def install(version, python, where, config, local, name):
+def install(version, python, where, config, local, name, ignore_prompts):
+
+    name = name or version
+    prompt_user = not ignore_prompts
 
     if not is_elevated() and PLATFORM == 'Windows':
         log(
@@ -298,10 +301,11 @@ def install(version, python, where, config, local, name):
             'following features will be disabled.\n\n'
             '    - Setting system environment variables\n'
         )
-        answer = input('Would you like to install anyway? [y] or n\n')
-        if answer and answer.lower().startswith('n'):
-            log('Abort.')
-            sys.exit()
+        if prompt_user:
+            answer = input('Would you like to install anyway? [y] or n\n')
+            if answer and answer.lower().startswith('n'):
+                log('Abort.')
+                sys.exit()
 
     where = os.path.abspath(where)
     if config:
@@ -445,8 +449,14 @@ def main():
     parser.add_argument(
         '--name',
          action='store',
-         help='Install from local directory.',
-         default=DEFAULT_VERSION,
+         help='Use a specific name instead of version.',
+         default=None,
+    )
+    parser.add_argument(
+        '--ignore-prompts',
+         action='store_true',
+         help='Do not request user input.',
+         default=False,
     )
 
     args = parser.parse_args()
