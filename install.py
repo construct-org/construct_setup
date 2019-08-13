@@ -64,7 +64,7 @@ DEFAULT_INSTALL_DIR = {
     'Linux': '/opt/construct',
     'Mac': '/opt/construct'
 }[PLATFORM]
-DEFAULT_VERSION = '0.1.23'
+DEFAULT_VERSION = '0.1.24'
 DEFAULT_PYTHON = sys.executable
 VERBOSE = False
 PIP_PACKAGE_PATH = (
