@@ -68,7 +68,7 @@ DEFAULT_VERSION = '0.1.24'
 DEFAULT_PYTHON = sys.executable
 VERBOSE = False
 PIP_PACKAGE_PATH = (
-    'git+git://github.com/construct-org/construct_setup.git'
+    'git+https://github.com/construct-org/construct_setup'
     '@%s#egg=construct_setup'
 )
 
