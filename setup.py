@@ -15,8 +15,8 @@ class Dependencies(object):
 
     def git(self, org, package, version, branch='master'):
         repo = (
-            'git+git://github.com/'
-            '{org}/{package}.git@{version}#egg={package}-{version}'
+            'git+https://github.com/'
+            '{org}/{package}@{version}#egg={package}-{version}'
         ).format(**locals())
         require = '{package} @ {repo}'.format(**locals())
         self.install_requires.append(require)
