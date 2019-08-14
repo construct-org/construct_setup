@@ -221,14 +221,28 @@ def pip_install(python, *args):
 
 
 def move_dir(src, dest):
-    if os.path.isdir(dest):
-        shutil.rmtree(dest)
-    shutil.move(src, dest)
+    log('Copying python scripts.')
+    if not os.path.isdir(dest):
+        os.makedirs(dest)
+
+    for src_root, subdirs, files in os.walk(src):
+        dest_root = src_root.replace(src, dest)
+
+        if not os.path.isdir(dest_root):
+            os.makedirs(dest_root)
+
+        for f in files:
+            log('%s > %s', join_path(src_root, f), join_path(dest_root, f))
+            src_path = join_path(src_root, f)
+            dest_path = join_path(dest_root, f)
+            if os.path.exists(dest_path):
+                os.remove(dest_path)
+            os.rename(join_path(src_root, f), join_path(dest_root, f))
 
 
 def update_symlink(src, dest):
 
-    debug('Updating latest symlink %s > %s.', src, dest)
+    debug('Updating current symlink %s > %s.', src, dest)
 
     if PLATFORM == 'Windows':
         src = os.path.normpath(src)
@@ -356,7 +370,7 @@ def install(version, python, where, config, local, name, ignore_prompts):
     copy_scripts(where)
 
     # Symlink to the version we just installed
-    update_symlink(install_path, join_path(where, 'latest'))
+    update_symlink(install_path, join_path(where, 'current'))
 
     # Post install
     # Setup system-wide access and activate construct in parent shells.

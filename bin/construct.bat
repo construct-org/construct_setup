@@ -3,11 +3,11 @@
 set THIS=%~dp0
 set OLD_PATH=%PATH%
 set OLD_PYTHONPATH=%PYTHONPATH%
-set PATH=%THIS%\latest\bin;%THIS%\latest\python\Scripts;%PATH%
-set PYTHONPATH=%THIS%\latest\lib;%PYTHONPATH%
+set PATH=%THIS%\current\bin;%THIS%\current\python\Scripts;%PATH%
+set PYTHONPATH=%THIS%\current\lib;%PYTHONPATH%
 
 
-call %THIS%\latest\bin\construct.bat %*
+call %THIS%\current\bin\construct.bat %*
 
 
 set PATH=%OLD_PATH%

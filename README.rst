@@ -28,7 +28,7 @@ Construct requires Git_ and Python 2.7 or 3.4+. The best method of installing
 construct is to use the install scripts included in this repository. These
 install construct into custom locations and allow for installing multiple
 versions of construct alongside each other. A symlink is created linking the
-latest version upon install.
+current version upon install.
 
 Windows
 -------
