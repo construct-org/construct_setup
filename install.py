@@ -15,7 +15,7 @@ if PY2:
     input = raw_input
 
 # Configure Logging
-logging.basicConfig(format='%(levelname)-8s | %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(levelname)-8s | %(message)s')
 _log = logging.getLogger('construct_setup')
 
 
@@ -261,7 +261,7 @@ def move_dir(src, dest):
             os.makedirs(dest_root)
 
         for f in files:
-            log('%s > %s', join_path(src_root, f), join_path(dest_root, f))
+            debug('%s > %s', join_path(src_root, f), join_path(dest_root, f))
             src_path = join_path(src_root, f)
             dest_path = join_path(dest_root, f)
             if os.path.exists(dest_path):
@@ -272,33 +272,23 @@ def move_dir(src, dest):
 
 
 def set_user_acls(where):
-    ace = (
-        "New-Object Security.AccessControl.FileSystemAccessRule("
-        "'Users', "
-        "'FullControl', "
-        "'ContainerInherit,ObjectInherit', "
-        "'None', "
-        "'Allow'"
-        ")"
-    )
-    fc = ""
-    ps1 = [
-        "$acl = Get-Acl -Path '%s'" % where,
-        "$ace = %s" % ace,
-        "$acl.addAccessRule($ace)",
-        "$acl | Set-Acl -Path '%s'" % where
-    ]
-    cmd = ['powershell.exe', '-Command', escape(';'.join(ps1))]
+    '''Set Windows Ownership and ACLs using powershell'''
 
-    success = run(' '.join(cmd), abort_on_fail=False)
+    log('Setting permissions of "%s".', where)
+    # Irritatingly, Set-Acl doesn't work, we have to use icacls
+    where = escape(where.replace('/', '\\').rstrip('\\'))
+    success = run(
+        'icacls %s\* /grant Users:(F) /inheritance:e /T' % where,
+        abort_on_fail=False,
+    )
     if not success:
         error('Failed to set permissions for %s', where)
 
 
 def update_symlink(src, dest):
+    '''Creates or updates a symlink'''
 
-    debug('Updating current symlink %s > %s.', src, dest)
-
+    log('Updating current symlink %s > %s.', src, dest)
     if PLATFORM == 'Windows':
         src = os.path.normpath(src)
         dest = os.path.normpath(dest)
@@ -389,7 +379,7 @@ def install(version, name, python, where, config, local, ignore_prompts=False):
     install_env = join_path(install_path, 'python')
 
     log('Installing Construct-%s to "%s".', version, install_path)
-    debug('Using "%s".', python)
+    log('Using "%s".', python)
 
     if PLATFORM == 'Windows':
         install_py = join_path(install_env, 'Scripts', 'python.exe')
@@ -430,7 +420,8 @@ def install(version, name, python, where, config, local, ignore_prompts=False):
     if PLATFORM == 'Windows':
 
         # Set permissions on windows
-        set_user_acls(where)
+        if is_elevated():
+            set_user_acls(install_path)
 
         # Modify system PATH to include construct install directory
         info('Adding %s to system PATH' % where)
