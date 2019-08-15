@@ -139,10 +139,14 @@ def join_path(*paths):
 
 
 def is_elevated():
+    '''Check if this process is elevated'''
+
     return bool(int(os.environ.get('SCRIM_ADMIN', 1)))
 
 
 def execute_after(cmd):
+    '''Write a shell command to be executed when the python script exits.'''
+
     script = os.environ.get('SCRIM_PATH')
     if script:
         with open(script, 'a') as f:
@@ -150,6 +154,8 @@ def execute_after(cmd):
 
 
 def ensure_exists(folder):
+    '''Make sure a folder exists.'''
+
     debug('Ensuring that "%s" exists.', folder)
     if not os.path.exists(folder):
         debug('Creating "%s".', folder)
@@ -157,11 +163,15 @@ def ensure_exists(folder):
 
 
 def touch(fname, times=None):
+    '''Touch a file'''
+
     with open(fname, 'a'):
         os.utime(fname, times)
 
 
 def is_available(cmd):
+    '''Check if a shell command is available'''
+
     try:
         check_call(cmd, stdout=PIPE, stderr=PIPE, shell=True)
         return True
@@ -169,16 +179,21 @@ def is_available(cmd):
         return False
 
 
-def escape(cmd):
-    if ' ' in cmd:
-        return '"%s"' % cmd
-    return cmd
+def escape(path):
+    '''Wrap a path in double quotes if it has a space in it.'''
+
+    if ' ' in path:
+        return '"%s"' % path
+    return path
 
 
 def run(cmd, abort_on_fail=True, **kwargs):
+    '''Run a shell command and return True if it succeeds.'''
+
+    kwargs.setdefault('shell', True)
     try:
         debug('Executing command: %s', cmd)
-        check_call(cmd, shell=True)
+        check_call(cmd, **kwargs)
         return True
     except:
         if abort_on_fail:
@@ -187,6 +202,8 @@ def run(cmd, abort_on_fail=True, **kwargs):
 
 
 def get_python_version(python):
+    '''Get the python version from a python executable.'''
+
     return check_output(
         'python -c "import sys; print(sys.version[:3])"',
         shell=True
@@ -194,6 +211,8 @@ def get_python_version(python):
 
 
 def create_venv(python, env_dir, env_py):
+    '''Create a virtualenv using the specified python interpreter.'''
+
     if os.path.exists(env_dir):
         warning('Virtual env already exists.')
         return
@@ -222,11 +241,15 @@ def create_venv(python, env_dir, env_py):
 
 
 def pip_install(python, *args):
+    '''Pip install using the specified python interpreter'''
+
     args = [python, '-m', 'pip', 'install'] + list(args)
     run(' '.join(args), abort_on_fail=True)
 
 
 def move_dir(src, dest):
+    '''Move a directory recursively.'''
+
     log('Copying python scripts.')
     if not os.path.isdir(dest):
         os.makedirs(dest)
@@ -289,7 +312,9 @@ def update_symlink(src, dest):
 
 
 def copy_scripts(dest):
-    debug('Installing scripts to %s', dest)
+    '''Copies scripts from construct_setup/bin to dest'''
+
+    log('Installing scripts to %s', dest)
     construct_bat = join_path(THIS_BIN, 'construct.bat')
     shutil.copy2(construct_bat, dest)
     shutil.copy2(construct_bat, join_path(dest, 'cons.bat'))
@@ -298,6 +323,8 @@ def copy_scripts(dest):
 
 
 def write_pth(site, lib, bin):
+    '''Creates a pth file pointing to custom python lib directory.'''
+
     lib_path = os.path.relpath(lib, site).replace('\\', '/')
     bin_path = os.path.relpath(bin, site).replace('\\', '/')
     site_path = join_path(site, 'construct.pth')
@@ -336,28 +363,22 @@ def update_profile(bash_profile_path, export_cmd, source_cmd, config_cmd=None):
             f.write(bash_profile)
 
 
-def install(version, python, where, config, local, name, ignore_prompts):
+def install(version, name, python, where, config, local, ignore_prompts=False):
+    '''Install construct.
+
+    Arguments:
+        version (str): x.x.x version string
+        python (str): Path to python interpreter to use
+        where (str): Install directory(defaults: C:/Construct, /opt/construct)
+        config (str): Path to construct configuration file
+        local (str): If True install from current working directory
+        name (str): Optional name to use instead of version string
+    '''
 
     name = name or version
-    prompt_user = not ignore_prompts
-
-    if not is_elevated() and PLATFORM == 'Windows':
-        log(
-            'To fully install Construct you need Admin priviledges. The '
-            'following features will be disabled.\n\n'
-            '    - Setting system environment variables\n'
-        )
-        if prompt_user:
-            answer = input('Would you like to install anyway? [y] or n\n')
-            if answer and answer.lower().startswith('n'):
-                log('Abort.')
-                sys.exit()
-
     where = os.path.abspath(where)
     if config:
         config = os.path.abspath(config)
-
-    # Setup our paths
     if local:
         pip_package_path = '.'
     else:
