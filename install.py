@@ -378,9 +378,6 @@ def install(version, name, python, where, config, local, ignore_prompts=False):
     install_bin = join_path(install_path, 'bin')
     install_env = join_path(install_path, 'python')
 
-    log('Installing Construct-%s to "%s".', version, install_path)
-    log('Using "%s".', python)
-
     if PLATFORM == 'Windows':
         install_py = join_path(install_env, 'Scripts', 'python.exe')
         install_site = join_path(install_env, 'lib', 'site-packages')
@@ -388,6 +385,9 @@ def install(version, name, python, where, config, local, ignore_prompts=False):
         pyver = 'python' + get_python_version(python)
         install_py = join_path(install_env, 'bin', 'python')
         install_site = join_path(install_env, 'lib', pyver, 'site-packages')
+
+    log('Installing Construct-%s to "%s".', version, install_path)
+    log('Using "%s".', python)
 
     # Make sure our install locations exist
     ensure_exists(where)
