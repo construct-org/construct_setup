@@ -528,14 +528,38 @@ def main():
          help='Do not request user input.',
          default=False,
     )
+    parser.add_argument(
+        '--debug',
+         action='store_true',
+         help='Do not request user input.',
+         default=False,
+    )
+
 
     args = parser.parse_args()
     args.python = escape(args.python)
+
+    if args.debug:
+        _log.setLevel(logging.DEBUG)
+    delattr(args, 'debug')
+
     if not is_available(args.python + ' -c "import pip"'):
         abort(
             'pip is required to install construct.\n\n'
             'Get it from https://pip.pypa.io/en/stable/installing/.'
         )
+    if not is_elevated() and PLATFORM == 'Windows':
+        log(
+            'To fully install Construct you need Admin priviledges. The '
+            'following features will be disabled.\n\n'
+            '    - Setting system environment variables\n'
+            '    - Setting folder permissions\n'
+        )
+        if not args.ignore_prompts:
+            answer = input('Would you like to install anyway? [y] or n\n')
+            if answer and answer.lower().startswith('n'):
+                log('Abort.')
+                sys.exit()
 
     install(**vars(args))
 
