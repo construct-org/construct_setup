@@ -169,6 +169,12 @@ def is_available(cmd):
         return False
 
 
+def escape(cmd):
+    if ' ' in cmd:
+        return '"%s"' % cmd
+    return cmd
+
+
 def run(cmd, abort_on_fail=True, **kwargs):
     try:
         debug('Executing command: %s', cmd)
@@ -460,6 +466,7 @@ def main():
     )
 
     args = parser.parse_args()
+    args.python = escape(args.python)
     if not is_available(args.python + ' -c "import pip"'):
         abort(
             'pip is required to install construct.\n\n'
