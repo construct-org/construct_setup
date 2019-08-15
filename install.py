@@ -245,6 +245,32 @@ def move_dir(src, dest):
                 os.remove(dest_path)
             os.rename(join_path(src_root, f), join_path(dest_root, f))
 
+    shutil.rmtree(src)
+
+
+def set_user_acls(where):
+    ace = (
+        "New-Object Security.AccessControl.FileSystemAccessRule("
+        "'Users', "
+        "'FullControl', "
+        "'ContainerInherit,ObjectInherit', "
+        "'None', "
+        "'Allow'"
+        ")"
+    )
+    fc = ""
+    ps1 = [
+        "$acl = Get-Acl -Path '%s'" % where,
+        "$ace = %s" % ace,
+        "$acl.addAccessRule($ace)",
+        "$acl | Set-Acl -Path '%s'" % where
+    ]
+    cmd = ['powershell.exe', '-Command', escape(';'.join(ps1))]
+
+    success = run(' '.join(cmd), abort_on_fail=False)
+    if not success:
+        error('Failed to set permissions for %s', where)
+
 
 def update_symlink(src, dest):
 
@@ -381,6 +407,9 @@ def install(version, python, where, config, local, name, ignore_prompts):
     # Post install
     # Setup system-wide access and activate construct in parent shells.
     if PLATFORM == 'Windows':
+
+        # Set permissions on windows
+        set_user_acls(where)
 
         # Modify system PATH to include construct install directory
         info('Adding %s to system PATH' % where)
