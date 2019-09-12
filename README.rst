@@ -1,3 +1,6 @@
+*Deprecated*
+Construct 0.2.X will include install scripts in the main construct repo.
+
 construct_setup
 ===============
 Setup construct core packages.
