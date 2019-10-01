@@ -1,5 +1,4 @@
-*Deprecated*
-Construct 0.2.X will include install scripts in the main construct repo.
+**Deprecated** - Construct 0.2 will include install scripts in the main construct repo.
 
 construct_setup
 ===============
@@ -20,7 +19,7 @@ Setup construct core packages.
 +---------------------+------------------------------+---------+
 | construct_ui_       | Graphical user interface     | 0.1.9   |
 +---------------------+------------------------------+---------+
-| fsfs_               | File system metadata         | 0.2.6   |
+| fsfs_               | File system metadata         | latest  |
 +---------------------+------------------------------+---------+
 
 
