@@ -402,7 +402,9 @@ def install(version, name, python, where, config, local, ignore_prompts=False):
     # Install construct and all of it's dependencies
     pip_install(
         install_py,
-        "-I", pip_package_path,
+        '-I',  # Ignore installed
+        '-U',  # Force upgrade
+        pip_package_path,
         '--target=%s' % install_lib
     )
 
