@@ -1,4 +1,4 @@
-**Deprecated** - Construct 0.2 will include install scripts in the main construct repo.
+**Deprecated** - Construct 0.2.X will include install scripts in the main construct repo.
 
 construct_setup
 ===============
