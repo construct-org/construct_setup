@@ -64,7 +64,7 @@ DEFAULT_INSTALL_DIR = {
     'Linux': '/opt/construct',
     'Mac': '/opt/construct'
 }[PLATFORM]
-DEFAULT_VERSION = '0.1.25'
+DEFAULT_VERSION = '0.1.26'
 DEFAULT_PYTHON = sys.executable
 VERBOSE = False
 PIP_PACKAGE_PATH = (
@@ -308,7 +308,9 @@ def copy_scripts(dest):
     construct_bat = join_path(THIS_BIN, 'construct.bat')
     shutil.copy2(construct_bat, dest)
     shutil.copy2(construct_bat, join_path(dest, 'cons.bat'))
-    shutil.copy2(join_path(THIS_BIN, 'construct.ps1'), dest)
+    construct_ps1 = join_path(THIS_BIN, 'construct.ps1')
+    shutil.copy2(construct_ps1, dest)
+    shutil.copy2(construct_ps1, join_path(dest, 'cons.ps1'))
     shutil.copy2(join_path(THIS_BIN, 'construct.sh'), dest)
 
 
