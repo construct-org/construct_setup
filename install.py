@@ -3,7 +3,8 @@ from __future__ import print_function
 import sys
 import platform
 import argparse
-from subprocess import check_call, check_output, PIPE
+from contextlib import contextmanager
+from subprocess import check_call, check_output, PIPE, Popen
 import os
 import re
 import shutil
@@ -17,42 +18,51 @@ if PY2:
 # Configure Logging
 logging.basicConfig(format='%(levelname)-8s | %(message)s')
 _log = logging.getLogger('construct_setup')
-
-
-def log(message, *args):
-    print(message % args)
+_indent = ''
+_count = 1
 
 debug = _log.debug
 critical = _log.critical
 error = _log.error
 info = _log.info
 warning = _log.warning
+exception = _log.exception
+
+
+def log(message, *args, **kwargs):
+    print((_indent + message) % args, **kwargs)
+
+
+def set_indent(string):
+    global _indent
+    _indent = string
+
+
+def set_step(value):
+    global _count
+    _count = value
 
 
 def abort(message, *args):
-    critical(message, *args)
-    log('Install Aborted.')
+    exception(message, *args)
+    set_indent('')
+    log('\nInstall Aborted.')
     sys.exit()
 
 
-def setup_log_colors():
-    '''Borrowed from django.
-    https://github.com/django/django/blob/master/django/core/management/color.py
-    '''
-
-    supported_platform = (
-        sys.platform != 'Pocket PC' and
-        (sys.platform != 'win32' or 'ANSICON' in os.environ)
-    )
-
-    # isatty is not always implemented, #6223.
-    is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
-    if supported_platform and is_a_tty:
-        logging.addLevelName(logging.WARNING, "\033[1;33mWARNING\033[1;0m")
-        logging.addLevelName(logging.ERROR, "\033[1;31mERROR\033[1;0m")
-        logging.addLevelName(logging.CRITICAL, "\033[1;31mCRITICAL\033[1;0m")
-        logging.addLevelName(logging.DEBUG, "\033[1;41mDEBUG\033[1;0m")
-        logging.addLevelName(logging.INFO, "INFO")
+@contextmanager
+def step(message, *args, **kwargs):
+    msg = message % args
+    log(('\n' + str(_count) + '. ' + message) % args)
+    try:
+        set_indent('    ')
+        yield
+        log('OK!')
+    except Exception as e:
+        abort('Install step failed...')
+    finally:
+        set_indent('')
+        set_step(_count + 1)
 
 
 # Configure Globals
@@ -67,7 +77,7 @@ DEFAULT_INSTALL_DIR = {
 DEFAULT_VERSION = '0.1.26'
 DEFAULT_PYTHON = sys.executable
 VERBOSE = False
-PIP_PACKAGE_PATH = (
+PIP_PACKAGE = (
     'git+https://github.com/construct-org/construct_setup'
     '@%s#egg=construct_setup'
 )
@@ -85,7 +95,7 @@ def _get_winreg():
 def _get_env_lookup(user=False):
     winreg = _get_winreg()
     user_reg_path = 'Environment'
-    reg_path = 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
+    reg_path = r'SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
     if user:
         return winreg.HKEY_CURRENT_USER, user_reg_path
     else:
@@ -156,10 +166,11 @@ def execute_after(cmd):
 def ensure_exists(folder):
     '''Make sure a folder exists.'''
 
-    debug('Ensuring that "%s" exists.', folder)
     if not os.path.exists(folder):
-        debug('Creating "%s".', folder)
+        log('Create %s', folder)
         os.makedirs(folder)
+    else:
+        log('%s already exists.', folder)
 
 
 def touch(fname, times=None):
@@ -191,14 +202,20 @@ def run(cmd, abort_on_fail=True, **kwargs):
     '''Run a shell command and return True if it succeeds.'''
 
     kwargs.setdefault('shell', True)
-    try:
-        debug('Executing command: %s', cmd)
-        check_call(cmd, **kwargs)
-        return True
-    except:
+    if not VERBOSE:
+        kwargs.setdefault('stderr', PIPE)
+        kwargs.setdefault('stdout', PIPE)
+
+    log('%s', cmd)
+    proc = Popen(cmd, **kwargs)
+    stdout, stderr = proc.communicate()
+
+    if proc.returncode != 0:
         if abort_on_fail:
             abort('Failed to execute: %s', cmd)
         return False
+
+    return stdout, stderr
 
 
 def get_python_version(python):
@@ -214,9 +231,10 @@ def create_venv(python, env_dir, env_py):
     '''Create a virtualenv using the specified python interpreter.'''
 
     if os.path.exists(env_dir):
-        warning('Virtual env already exists.')
+        log('Virtualenv already exists %s.', env_dir)
         return
 
+    log('Creating virtualenv %s.', env_dir)
     if is_available(python + ' -c "import virtualenv"'):
         run(python + ' -m virtualenv --no-site-packages ' + env_dir)
     elif is_available(python + ' -c "import venv"'):
@@ -224,7 +242,7 @@ def create_venv(python, env_dir, env_py):
     else:
         success = run(
             python + ' -m pip install virtualenv',
-            abort_on_fail=False
+            abort_on_fail=False,
         )
         if success:
             run(python + ' -m virtualenv --no-site-packages ' + env_dir)
@@ -236,7 +254,7 @@ def create_venv(python, env_dir, env_py):
             )
 
     # Upgrade pip
-    debug('Upgrading pip...')
+    log('Upgrading pip...')
     pip_install(env_py, '-U', 'pip')
 
 
@@ -250,18 +268,19 @@ def pip_install(python, *args):
 def move_dir(src, dest):
     '''Move a directory recursively.'''
 
-    log('Copying python scripts.')
     if not os.path.isdir(dest):
+        log('Creating %s', dest)
         os.makedirs(dest)
 
     for src_root, subdirs, files in os.walk(src):
         dest_root = src_root.replace(src, dest)
 
         if not os.path.isdir(dest_root):
+            log('Creating %s', dest_root)
             os.makedirs(dest_root)
 
         for f in files:
-            debug('%s > %s', join_path(src_root, f), join_path(dest_root, f))
+            log('%s > %s', join_path(src_root, f), join_path(dest_root, f))
             src_path = join_path(src_root, f)
             dest_path = join_path(dest_root, f)
             if os.path.exists(dest_path):
@@ -274,7 +293,6 @@ def move_dir(src, dest):
 def set_user_acls(where):
     '''Set Windows Ownership and ACLs using powershell'''
 
-    log('Setting permissions of "%s".', where)
     # Irritatingly, Set-Acl doesn't work, we have to use icacls
     where = escape(where.replace('/', '\\').rstrip('\\'))
     success = run(
@@ -288,13 +306,12 @@ def set_user_acls(where):
 def update_symlink(src, dest):
     '''Creates or updates a symlink'''
 
-    log('Updating current symlink %s > %s.', src, dest)
     if PLATFORM == 'Windows':
         src = os.path.normpath(src)
         dest = os.path.normpath(dest)
         if os.path.isdir(dest):
             run('cmd.exe /C rmdir %s' % dest)
-        run('cmd.exe /C mklink /D %s %s' % (dest, src))
+        stdout, stderr = run('cmd.exe /C mklink /D %s %s' % (dest, src))
     else:
         if os.path.isdir(dest):
             os.remove(dest)
@@ -304,14 +321,26 @@ def update_symlink(src, dest):
 def copy_scripts(dest):
     '''Copies scripts from construct_setup/bin to dest'''
 
-    log('Installing scripts to %s', dest)
+    # Bat files
     construct_bat = join_path(THIS_BIN, 'construct.bat')
+    cons_bat = join_path(dest, 'cons.bat')
+    log('%s -> %s', construct_bat, dest)
     shutil.copy2(construct_bat, dest)
-    shutil.copy2(construct_bat, join_path(dest, 'cons.bat'))
+    log('%s -> %s', cons_bat, dest)
+    shutil.copy2(construct_bat, cons_bat)
+
+    # Ps1 files
     construct_ps1 = join_path(THIS_BIN, 'construct.ps1')
+    cons_ps1 = join_path(dest, 'cons.ps1')
+    log('%s -> %s', construct_ps1, dest)
     shutil.copy2(construct_ps1, dest)
-    shutil.copy2(construct_ps1, join_path(dest, 'cons.ps1'))
-    shutil.copy2(join_path(THIS_BIN, 'construct.sh'), dest)
+    log('%s -> %s', construct_ps1, cons_ps1)
+    shutil.copy2(construct_ps1, cons_ps1)
+
+    # Bash files
+    construct_sh = join_path(THIS_BIN, 'construct.sh')
+    log('%s -> %s', construct_sh, dest)
+    shutil.copy2(construct_sh, dest)
 
 
 def write_pth(site, lib, bin):
@@ -320,6 +349,11 @@ def write_pth(site, lib, bin):
     lib_path = os.path.relpath(lib, site).replace('\\', '/')
     bin_path = os.path.relpath(bin, site).replace('\\', '/')
     site_path = join_path(site, 'construct.pth')
+    log('Writing %s.', site_path)
+    set_indent('    ' * 2)
+    log(lib_path)
+    log(bin_path)
+    set_indent('    ')
     with open(site_path, 'w') as f:
         f.write('\n'.join([lib_path, bin_path]))
 
@@ -348,132 +382,190 @@ def update_profile(bash_profile_path, export_cmd, source_cmd, config_cmd=None):
             bash_profile = bash_profile.replace(string, export_cmd)
         changed = True
     if changed:
-        info('Backing up %s to %s.bak!!', bash_profile_path, bash_profile_path)
+        debug('Creating backup profile %s.bak', bash_profile_path)
         shutil.copy2(bash_profile_path, bash_profile_path + '.bak')
-        info('Updating %s', bash_profile_path)
+        debug('Writing %s', bash_profile_path)
         with open(bash_profile_path, 'w') as f:
             f.write(bash_profile)
 
 
-def install(version, name, python, where, config, local, ignore_prompts=False):
-    '''Install construct.
+class Installer(object):
+    '''Construct Installer...
 
     Arguments:
         version (str): x.x.x version string
+        name (str): Optional name to use instead of version string
         python (str): Path to python interpreter to use
         where (str): Install directory(defaults: C:/Construct, /opt/construct)
         config (str): Path to construct configuration file
         local (str): If True install from current working directory
-        name (str): Optional name to use instead of version string
+        ignore_prompts (bool): Ignore install prompts if True
     '''
+    def __init__(
+        self,
+        version,
+        name,
+        python,
+        where,
+        config,
+        local,
+        ignore_prompts=False
+    ):
+        self.version = version
+        self.name = name or version
+        self.python = python
+        self.where = os.path.abspath(where)
+        self.config = config if config is None else os.path.abspath(config)
+        self.pip_package = '.' if local else PIP_PACKAGE % version
+        self.ignore_prompts = ignore_prompts
+        self.install_path = join_path(self.where, self.name)
+        self.install_current = join_path(self.where, 'current')
+        self.install_lib = join_path(self.install_path, 'lib')
+        self.install_lib_bin = join_path(self.install_lib, 'bin')
+        self.install_bin = join_path(self.install_path, 'bin')
+        self.install_env = join_path(self.install_path, 'python')
 
-    name = name or version
-    where = os.path.abspath(where)
-    if config:
-        config = os.path.abspath(config)
-    if local:
-        pip_package_path = '.'
-    else:
-        pip_package_path = PIP_PACKAGE_PATH % version
-    install_path = join_path(where, name)
-    install_lib = join_path(install_path, 'lib')
-    install_bin = join_path(install_path, 'bin')
-    install_env = join_path(install_path, 'python')
+        if PLATFORM == 'Windows':
+            self.install_py = join_path(
+                self.install_env,
+                'Scripts',
+                'python.exe',
+            )
+            self.install_site = join_path(
+                self.install_env,
+                'lib',
+                'site-packages',
+            )
+        else:
+            pyver = 'python' + get_python_version(python)
+            self.install_py = join_path(
+                self.install_env,
+                'bin',
+                'python',
+            )
+            self.install_site = join_path(
+                self.install_env,
+                'lib',
+                pyver,
+                'site-packages',
+            )
 
-    if PLATFORM == 'Windows':
-        install_py = join_path(install_env, 'Scripts', 'python.exe')
-        install_site = join_path(install_env, 'lib', 'site-packages')
-    else:
-        pyver = 'python' + get_python_version(python)
-        install_py = join_path(install_env, 'bin', 'python')
-        install_site = join_path(install_env, 'lib', pyver, 'site-packages')
+    def run(self):
+        '''Run the installer including any platform specific install steps.'''
 
-    log('Installing Construct-%s to "%s".', version, install_path)
-    log('Using "%s".', python)
+        log(
+            '\nInstalling Construct-%s to "%s".',
+            self.version,
+            self.install_path,
+        )
+        log('Using "%s".', self.python)
 
-    # Make sure our install locations exist
-    ensure_exists(where)
-    ensure_exists(install_path)
+        with step('Ensure install directories exist...'):
+            ensure_exists(self.where)
+            ensure_exists(self.install_path)
 
-    # Create a python virtualenv
-    create_venv(python, install_env, install_py)
+        with step('Create python virtualenv...'):
+            create_venv(self.python, self.install_env, self.install_py)
 
-    # Add a pth file extending the virtualenv to include lib and bin paths
-    write_pth(install_site, install_lib, install_bin)
+        with step('Add pth file to virtualenv...'):
+            write_pth(self.install_site, self.install_lib, self.install_bin)
 
-    # Install construct and all of it's dependencies
-    pip_install(
-        install_py,
-        '-I',  # Ignore installed
-        '-U',  # Force upgrade
-        pip_package_path,
-        '--target=%s' % install_lib
-    )
+        with step('Install construct to virtualenv...'):
+            pip_install(
+                self.install_py,
+                '-I',  # Ignore installed
+                '-U',  # Force upgrade
+                self.pip_package,
+                '--target=%s' % self.install_lib
+            )
 
-    # Move the target bin to the root of the install directory
-    move_dir(join_path(install_lib, 'bin'), install_bin)
+        with step('Move installed python console scripts...'):
+            move_dir(self.install_lib_bin, self.install_bin)
 
-    # Copy the construct shim files to the installs root directory
-    copy_scripts(where)
+        with step('Install construct and cons shell scripts...'):
+            copy_scripts(self.where)
 
-    # Symlink to the version we just installed
-    update_symlink(install_path, join_path(where, 'current'))
+        with step('Update symlink %s...', self.install_current):
+            update_symlink(self.install_path, self.install_current)
 
-    # Post install
-    # Setup system-wide access and activate construct in parent shells.
-    if PLATFORM == 'Windows':
+        # Run platform specific install steps
+        {
+            'Windows': self.windows_steps,
+            'Mac': self.mac_steps,
+            'Linux': self.unix_steps,
+        }[PLATFORM]()
 
-        # Set permissions on windows
+        log('\nInstall complete!')
+        log('\nYou should now have access to the construct cli.\n')
+        log('    cons -h')
+
+    def windows_steps(self):
+        '''Windows specific install steps.'''
+
         if is_elevated():
-            set_user_acls(install_path)
+            with step('Setting windows acls...'):
+                set_user_acls(self.install_path)
 
         # Modify system PATH to include construct install directory
-        info('Adding %s to system PATH' % where)
-        system_path = _win_get_env('PATH')
-        if where not in system_path.split(';'):
-            if is_elevated():
-                execute_after('setx /M PATH "%s;%s"' % (where, system_path))
+        with step('Adding %s to system PATH...', self.where):
+            system_path = _win_get_env('PATH')
+            if self.where not in system_path.split(';'):
+                if is_elevated():
+                    execute_after(
+                        'setx /M PATH "%s;%s"' % (self.where, system_path)
+                    )
+            execute_after('set "PATH=%s;%%PATH%%"' % self.where)
 
-        execute_after('set "PATH=%s;%%PATH%%"' % where)
-        if config:
-            info('Setting CONSTRUCT_CONFIG to %s' % config)
-            if is_elevated():
-                execute_after('setx /M CONSTRUCT_CONFIG "%s"' % config)
-            execute_after('set "CONSTRUCT_CONFIG=%s"' % config)
+        if self.config:
+            with step('Setting CONSTRUCT_CONFIG to %s...', self.config):
+                if is_elevated():
+                    execute_after(
+                        'setx /M CONSTRUCT_CONFIG "%s"' % self.config
+                    )
+                execute_after('set "CONSTRUCT_CONFIG=%s"' % self.config)
 
-    else:
+    def mac_steps(self):
+        '''Mac specific install steps'''
 
-        export_cmd = 'export PATH=%s:$PATH' % where
-        source_cmd = 'source %s/construct.sh' % where
+        self.unix_steps()
+        # TODO: Create Application
+        # TODO: Modify plist
+
+    def unix_steps(self):
+        '''Linux / Unix install steps'''
+
+        export_cmd = 'export PATH=%s:$PATH' % self.where
+        source_cmd = 'source %s/construct.sh' % self.where
         config_cmd = None
         if config:
-            config_cmd = 'export CONSTRUCT_CONFIG=%s' % config
+            config_cmd = 'export CONSTRUCT_CONFIG=%s' % self.config
 
         if is_elevated():
             bash_profile_path = '/etc/profile'
         else:
             bash_profile_path = os.path.expanduser('~/.profile')
 
-        # Update bash profile to make sure that each time a user logs in
-        # they have access to construct.
-        update_profile(bash_profile_path, export_cmd, source_cmd, config_cmd)
+        with step('Add construct to bash profile...'):
+            update_profile(
+                bash_profile_path,
+                export_cmd,
+                source_cmd,
+                config_cmd,
+            )
 
-        info('Adding %s to PATH' % where)
-        execute_after(export_cmd)
-        info('Sourcing construct.sh')
-        execute_after(source_cmd)
-        if config:
-            info('Setting CONSTRUCT_CONFIG to %s' % config)
-            execute_after(config_cmd)
+        with step('Adding %s to PATH...', self.where):
+            execute_after(export_cmd)
 
-    info('Install complete!')
-    log('\nYou should now have access to the construct cli.\n')
-    log('    cons -h')
+        with step('Sourcing construct.sh...'):
+            execute_after(source_cmd)
+
+        if self.config:
+            with step('Setting CONSTRUCT_CONFIG to %s', self.config):
+                log('Setting CONSTRUCT_CONFIG to %s' % self.config)
+                execute_after(config_cmd)
 
 
 def main():
-
-    setup_log_colors()
 
     if not is_available('git --version'):
         abort(
@@ -535,7 +627,9 @@ def main():
     args.python = escape(args.python)
 
     if args.debug:
+        global VERBOSE
         _log.setLevel(logging.DEBUG)
+        VERBOSE = True
     delattr(args, 'debug')
 
     if not is_available(args.python + ' -c "import pip"'):
@@ -556,7 +650,7 @@ def main():
                 log('Abort.')
                 sys.exit()
 
-    install(**vars(args))
+    Installer(**vars(args)).run()
 
 
 if __name__ == "__main__":
