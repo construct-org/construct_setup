@@ -9,7 +9,3 @@ $py_entry_point="$this\current\bin\construct.ps1"
 
 $Env:PYTHONPATH=$old_python_path
 $Env:PATH=$old_path
-Remove-Variable py_entry_point
-Remove-Variable old_python_path
-Remove-Variable old_path
-Remove-Variable this
