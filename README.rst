@@ -7,13 +7,13 @@ Setup construct core packages.
 +---------------------+------------------------------+---------+
 | package             | description                  | version |
 +=====================+==============================+=========+
-| construct_          | Core api                     | 0.1.27  |
+| construct_          | Core api                     | 0.1.28  |
 +---------------------+------------------------------+---------+
 | construct_cpenv_    | Cpenv Integration            | 0.1.1   |
 +---------------------+------------------------------+---------+
 | construct_launcher_ | Application launcher         | 0.1.5   |
 +---------------------+------------------------------+---------+
-| construct_maya_     | Autodesk Maya integration    | 0.1.12  |
+| construct_maya_     | Autodesk Maya integration    | 0.1.13  |
 +---------------------+------------------------------+---------+
 | construct_nuke_     | The Foundry Nuke integration | 0.1.9   |
 +---------------------+------------------------------+---------+
