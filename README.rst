@@ -7,7 +7,7 @@ Setup construct core packages.
 +---------------------+------------------------------+---------+
 | package             | description                  | version |
 +=====================+==============================+=========+
-| construct_          | Core api                     | 0.1.28  |
+| construct_          | Core api                     | 0.1.29  |
 +---------------------+------------------------------+---------+
 | construct_cpenv_    | Cpenv Integration            | 0.1.1   |
 +---------------------+------------------------------+---------+
@@ -17,7 +17,7 @@ Setup construct core packages.
 +---------------------+------------------------------+---------+
 | construct_nuke_     | The Foundry Nuke integration | 0.1.9   |
 +---------------------+------------------------------+---------+
-| construct_ui_       | Graphical user interface     | 0.2.1   |
+| construct_ui_       | Graphical user interface     | 0.2.2   |
 +---------------------+------------------------------+---------+
 | fsfs_               | File system metadata         | latest  |
 +---------------------+------------------------------+---------+
