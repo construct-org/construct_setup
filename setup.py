@@ -28,7 +28,7 @@ requires.git('construct-org', 'construct_cpenv', '0.1.1')
 requires.git('construct-org', 'construct_launcher', '0.1.5')
 requires.git('construct-org', 'construct_maya', '0.1.13')
 requires.git('construct-org', 'construct_hou', '0.1.1')
-requires.git('construct-org', 'construct_nuke', '0.1.9')
+requires.git('construct-org', 'construct_nuke', '0.1.10')
 requires.git('construct-org', 'construct_ui', '0.2.2')
 requires('fsfs')
 
