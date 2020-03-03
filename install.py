@@ -74,7 +74,7 @@ DEFAULT_INSTALL_DIR = {
     'Linux': '/opt/construct',
     'Mac': '/opt/construct'
 }[PLATFORM]
-DEFAULT_VERSION = '0.1.26'
+DEFAULT_VERSION = '0.1.30'
 DEFAULT_PYTHON = sys.executable
 VERBOSE = False
 PIP_PACKAGE = (
@@ -236,7 +236,7 @@ def create_venv(python, env_dir, env_py):
 
     log('Creating virtualenv %s.', env_dir)
     if is_available(python + ' -c "import virtualenv"'):
-        run(python + ' -m virtualenv --no-site-packages ' + env_dir)
+        run(python + ' -m virtualenv ' + env_dir)
     elif is_available(python + ' -c "import venv"'):
         run(python + ' -m venv ' + env_dir)
     else:
@@ -245,7 +245,7 @@ def create_venv(python, env_dir, env_py):
             abort_on_fail=False,
         )
         if success:
-            run(python + ' -m virtualenv --no-site-packages ' + env_dir)
+            run(python + ' -m virtualenv ' + env_dir)
         else:
             abort(
                 'Failed to setup a virtualenv for construct.\n\n'
