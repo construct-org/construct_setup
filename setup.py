@@ -10,7 +10,7 @@ class Dependencies(object):
         self.install_requires = []
         self.dependency_links = []
 
-    def __call__(self, requirement):
+    def pip(self, requirement):
         self.install_requires.append(requirement)
 
     def git(self, org, package, version, branch='master'):
@@ -23,19 +23,19 @@ class Dependencies(object):
 
 
 requires = Dependencies()
-requires.git('construct-org', 'construct', '0.1.30')
-requires.git('construct-org', 'construct_cpenv', '0.2.0')
-requires.git('construct-org', 'construct_launcher', '0.1.5')
+requires.git('construct-org', 'construct', '0.1.40')
+requires.git('construct-org', 'construct_cpenv', '0.3.0')
+requires.git('construct-org', 'construct_launcher', '0.2.0')
 requires.git('construct-org', 'construct_maya', '0.1.13')
 requires.git('construct-org', 'construct_hou', '0.1.1')
 requires.git('construct-org', 'construct_nuke', '0.1.10')
 requires.git('construct-org', 'construct_ui', '0.2.3')
-requires('fsfs')
+requires.pip('fsfs')
 
 
 setup(
     name='construct_setup',
-    version='0.1.30',
+    version='0.1.40',
     author='Dan Bradham',
     author_email='danielbradham@gmail.com',
     description='Install construct core packages',
