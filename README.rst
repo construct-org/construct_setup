@@ -1,4 +1,4 @@
-**Deprecated** - Construct 0.2.X will include install scripts in the main construct repo.
+**Deprecated**
 
 construct_setup
 ===============
@@ -7,13 +7,15 @@ Setup construct core packages.
 +---------------------+------------------------------+---------+
 | package             | description                  | version |
 +=====================+==============================+=========+
-| construct_          | Core api                     | 0.1.30  |
+| construct_          | Core api                     | 0.1.40  |
 +---------------------+------------------------------+---------+
-| construct_cpenv_    | Cpenv Integration            | 0.2.0   |
+| construct_cpenv_    | Cpenv Integration            | 0.3.0   |
 +---------------------+------------------------------+---------+
-| construct_launcher_ | Application launcher         | 0.1.5   |
+| construct_launcher_ | Application launcher         | 0.2.0   |
 +---------------------+------------------------------+---------+
 | construct_maya_     | Autodesk Maya integration    | 0.1.13  |
++---------------------+------------------------------+---------+
+| construct_hou_      | Side Effects Houdini integ.  | 0.1.1   |
 +---------------------+------------------------------+---------+
 | construct_nuke_     | The Foundry Nuke integration | 0.1.10  |
 +---------------------+------------------------------+---------+
@@ -93,6 +95,7 @@ yourself.
 .. _construct_cpenv: https://github.com/construct-org/construct_cpenv
 .. _construct_launcher: https://github.com/construct-org/construct_launcher
 .. _construct_maya: https://github.com/construct-org/construct_maya
+.. _construct_hou: https://github.com/construct-org/construct_hou
 .. _construct_nuke: https://github.com/construct-org/construct_nuke
 .. _construct_ui: https://github.com/construct-org/construct_ui
 .. _fsfs: https://github.com/danbradham/fsfs
